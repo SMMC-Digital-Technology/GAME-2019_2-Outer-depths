@@ -4,6 +4,9 @@ var loadState = {
       font: '30px Courier',
       fill: '#ffffff'
     });
+    game.load.text('startScreen', 'data/startScreen.json');
+
+    game.load.image('pix', 'assets/misc/pix.png');
 
     game.load.spritesheet('player', 'assets/player/run.png', 32, 33);
     game.load.spritesheet('peaShooter', 'assets/weapons/shooter.png', 32, 32);
@@ -15,11 +18,8 @@ var loadState = {
 
     game.load.image('gameTitle', 'assets/title/game.png');
     game.load.image('prompt', 'assets/title/prompt.png');
-    game.load.image('largeStar', 'assets/title/stars/stars_0.png');
-    game.load.image('smallStar1', 'assets/title/stars/stars_1.png');
-    game.load.image('smallStar2', 'assets/title/stars/stars_2.png');
-    game.load.image('meteor1', 'assets/title/stars/stars_3.png');
-    game.load.image('meteor2', 'assets/title/stars/stars_4.png');
+    game.load.atlasJSONHash('stars', 'assets/stars.png', 'assets/data/stars.json');
+
 
 
   },
