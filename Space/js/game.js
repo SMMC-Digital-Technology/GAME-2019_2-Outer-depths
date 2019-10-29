@@ -18,7 +18,8 @@ game.global = {
   moveFreeze: 0,
   player: 0,
   floor: 0,
-  allowStart: 0
+  allowStart: 0,
+  meteorBuffer: 0
 };
 
 game.state.start('boot');

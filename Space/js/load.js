@@ -18,7 +18,7 @@ var loadState = {
 
     game.load.image('gameTitle', 'assets/title/game.png');
     game.load.image('prompt', 'assets/title/prompt.png');
-    game.load.atlasJSONHash('stars', 'assets/stars.png', 'assets/data/stars.json');
+    game.load.atlasJSONHash('stars', 'assets/title/stars/stars.png', 'assets/data/stars.json');
 
 
 
