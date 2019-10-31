@@ -1,0 +1,15 @@
+ {
+  "largeStarLocations": [
+    { "image": "stars","x": 4, "y": 5},
+    { "image": "stars","x": 220, "y": 30},
+    { "image": "stars","x": 252, "y": 137},
+    { "image": "stars","x": 35, "y": 185}
+  ],
+  "smallStarLocations": [
+    { "image": "stars","x": 160, "y": 130},
+    { "image": "stars","x": 90, "y": 60},
+    { "image": "stars","x": -3, "y": 100},
+    { "image": "stars","x": 220, "y": 160}
+
+  ]
+}
