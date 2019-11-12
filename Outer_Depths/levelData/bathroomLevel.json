@@ -1,0 +1,35 @@
+ {
+  "bathroomBackground": [
+    { "image": "bathroomSprites","x": 0, "y":0 }
+  ],
+  "bathroomMain": [
+    { "image": "bathroomSprites","x": 0, "y": 0}
+  ],
+  "bathroomCollision": [
+    { "image": "pixel", "x": 0, "y": 759},
+    { "image": "pixel", "x": 15, "y": 669},
+    { "image": "pixel", "x": 15, "y": 708},
+    { "image": "pixel", "x": 183, "y": 537},
+    { "image": "pixel", "x": 0, "y": 537},
+    { "image": "pixel", "x": 156, "y": 483},
+    { "image": "pixel", "x": 0, "y": 360},
+    { "image": "pixel", "x": 270, "y": 471},
+    { "image": "pixel", "x": 282, "y": 459},
+    { "image": "pixel", "x": 294, "y": 447},
+    { "image": "pixel", "x": 303, "y": 282},
+    { "image": "pixel", "x": 1065, "y": 270},
+    { "image": "pixel", "x": 1077, "y": 258},
+    { "image": "pixel", "x": 1089, "y": 246},
+    { "image": "pixel", "x": 24, "y": 384},
+    { "image": "pixel", "x": 36, "y": 373},
+    { "image": "pixel", "x": 48, "y": 360},
+    { "image": "pixel", "x": 165, "y": 186},
+    { "image": "pixel", "x": 177, "y": 175},
+    { "image": "pixel", "x": 189, "y": 162},
+    { "image": "pixel", "x": 65, "y": 180},
+    { "image": "pixel", "x": 165, "y": 145},
+    { "image": "pixel", "x": 1098, "y": 145},
+    { "image": "pixel", "x": 996, "y": 500}
+
+  ]
+}
