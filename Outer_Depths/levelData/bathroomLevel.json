@@ -7,7 +7,7 @@
   ],
   "bathroomCollision": [
     { "image": "pixel", "x": 0, "y": 759},
-    { "image": "pixel", "x": 15, "y": 669},
+    { "image": "pixel", "x": 15, "y": 654},
     { "image": "pixel", "x": 15, "y": 708},
     { "image": "pixel", "x": 183, "y": 537},
     { "image": "pixel", "x": 0, "y": 537},
@@ -29,7 +29,21 @@
     { "image": "pixel", "x": 65, "y": 180},
     { "image": "pixel", "x": 165, "y": 145},
     { "image": "pixel", "x": 1098, "y": 145},
-    { "image": "pixel", "x": 996, "y": 500}
+    { "image": "pixel", "x": 996, "y": 500},
+    { "image": "pixel", "x": 1422, "y": 702},
+    { "image": "pixel", "x": 1182, "y": 0},
+    { "image": "pixel", "x": 1182, "y": 135},
+    { "image": "pixel", "x": 1500, "y": 561},
+    { "image": "pixel", "x": 1530, "y": 483},
+    { "image": "pixel", "x": 1764, "y": 0},
+    { "image": "pixel", "x": 1668, "y": 378},
+    { "image": "pixel", "x": 1338, "y": 243},
+    { "image": "pixel", "x": 1613, "y": 51},
+    { "image": "pixel", "x": 1446, "y": 27},
+    { "image": "pixel", "x": 1446, "y": 0}
+
+
+
 
   ]
 }

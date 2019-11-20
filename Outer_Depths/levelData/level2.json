@@ -1,0 +1,16 @@
+ {
+  "level2Background": [
+    { "image": "level2(1)","x": 0, "y": 1700 }
+  ],
+  "level2Main": [
+    { "image": "level2(1)","x": 0, "y": 1700}
+  ],
+  "level2Collision": [
+    { "image": "pixel", "x": 0, "y": 5859},
+    { "image": "pixel", "x": 357, "y": 5859},
+    { "image": "pixel", "x": 0, "y": 5495},
+    { "image": "pixel", "x": 0, "y": 5443}
+
+
+  ]
+}

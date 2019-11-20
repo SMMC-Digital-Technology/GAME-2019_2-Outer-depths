@@ -72,10 +72,16 @@
  var mouse1down;
  var spaceTimer = 0;
  var jumping = false;
- var level1CollisionX = [1100, 21, 69, 9, 15, 1000, 24, 12, 12, 12, 800, 12, 12, 12, 12, 12, 12, 12, 12, 12, 100, 950, 30, 75];
- var level1CollisionY = [100, 100, 60, 36, 400, 39, 162, 12, 12, 12, 200, 12, 12, 12, 12, 12, 12, 12, 12, 12, 183, 20, 200, 112];
+ var level1CollisionX = [1600, 21, 69, 9, 15, 1056, 24, 12, 12, 12, 800, 12, 12, 12, 12, 12, 12, 12, 12, 12, 100, 950, 30, 75, 100, 30, 159, 260, 75, 40, 120, 159, 200, 250, 40];
+ var level1CollisionY = [100, 100, 60, 36, 400, 39, 162, 12, 12, 12, 200, 12, 12, 12, 12, 12, 12, 12, 12, 12, 183, 20, 200, 112, 70, 500, 210, 200, 100, 700, 24, 24, 30, 30, 50];
+ var level2CollisionX = [123, 1000, 15, 1200];
+ var level2CollisionY = [200, 200, 400, 53];
  var level1Data = [];
  var arrayDummy = 0;
+ var activeLevel = 0;
+ var transition = 0;
+ var transitionYDummy;
+ var transitionXDummy;
 
  function preload() {
    loadingLabel = game.add.text(80, 150, 'loading...', {
@@ -84,6 +90,7 @@
    });
    game.load.text('startScreen', 'levelData/startScreen.json');
    game.load.text('bathroomLevel', 'levelData/bathroomLevel.json');
+   game.load.text('Level2JSON', 'levelData/level2.json');
 
    game.load.image('pixel', 'assets/misc/pixel.png');
 
@@ -101,7 +108,8 @@
    game.load.atlasJSONHash('stars', 'assets/title/stars/stars.png', 'assets/atlasData/stars.json');
    game.load.atlasJSONHash('bathroomSprites', 'assets/environments/bathroom/bathroom.png', 'assets/atlasData/bathroom.json');
    game.load.atlasJSONHash('panel', 'assets/environments/doors/panel.png', 'assets/atlasData/panel.json');
-
+   game.load.atlasJSONHash('level2(1)', 'assets/environments/level2/level2(1).png', 'assets/atlasData/level2(1).json');
+   game.load.atlasJSONHash('droid', 'assets/enemies/droid.png', 'assets/atlasData/droid.json');
 
 
 
@@ -189,10 +197,7 @@
        player.body.velocity.x += 20;
      }
 
-     if (player.body.velocity.x < 15 && player.body.velocity.x > -15) {
-       player.body.velocity.x = 0;
-     }
-     if (A.isDown || D.isDown) {
+     if ((A.isDown || D.isDown) && transition == 0) {
        player.animations.play('run');
        if (A.isDown) {
          player.body.velocity.x = -200;
@@ -244,25 +249,71 @@
      if (space.isDown) {
        spaceDown = 1;
        if (jumping && spaceTimer < 0) {
-         spaceTimer -= 40;
-         player.body.velocity.y = spaceTimer;
+         spaceTimer -= 25;
+         if (spaceTimer >= -100 && jumping) {
+           player.body.velocity.y = spaceTimer;
+         }
        }
      } else {
        spaceDown = 0;
        spaceTimer = 0;
+       jumping = false;
      }
-     if (spaceTimer <= -400) {
+     if (spaceTimer <= -600) {
+       spaceDown = 0;
+       jumping = false;
        spaceTimer = 0;
+     } else if (spaceTimer <= -100 && jumping) {
+       player.body.velocity.y = -400;
      }
 
-     function collectStar() {
-       console.log("jh");
+     if (player.body.touching.down == false && jumping == false && transition == 0) {
+       player.body.velocity.y += 15;
      }
-   }
-   if (game.input.activePointer.leftButton.isDown) {
-     mouse1down = 1;
-   } else {
-     mouse1down = 0;
+
+     if (activeLevel == 1 && player.y < 0) {
+       game.backgroundLayer.callAll('kill');
+       game.doorLayer.callAll('kill');
+       game.mainLayer.callAll('kill');
+       game.doorLayer.callAll('kill');
+       game.collisionLayer.callAll('kill');
+       game.foregroundLayer.callAll('kill');
+
+       loadLevel2();
+       transition = 1;
+       player.x = 210;
+       player.y = game.world.height - 20;
+       player.body.velocity.y = -300;
+       transitionXDummy = player.x;
+       transitionYDummy = player.y;
+     }
+
+     if (transition == 1) {
+       if ((player.y > transitionYDummy - 150) && (player.x == transitionXDummy)) {
+         player.body.velocity.y -= 16;
+       } else {
+         if (player.x == transitionXDummy) {
+           player.body.velocity.x = 16;
+         } else {
+           player.body.velocity.x += 35;
+           player.body.velocity.y += 16;
+         }
+
+       }
+       if (player.body.touching.down) {
+         transition = 0;
+         player.body.velocity.x = 0;
+         player.body.velocity.y = 0;
+       }
+     }
+
+
+     if (game.input.activePointer.leftButton.isDown) {
+       mouse1down = 1;
+       console.log((this.input.mousePointer.x + this.camera.x) + " - " + (this.input.mousePointer.y + this.camera.y));
+     } else {
+       mouse1down = 0;
+     }
    }
  }
 
@@ -295,45 +346,11 @@
      fill: '#ffffff'
    });
 
-   game.world.setBounds(0, 0, 2300, 900);
-
    player = game.add.sprite(800, 600, 'player');
    wrench = game.add.sprite(800, 600, 'wrench');
    camera = game.add.sprite(400, 300);
 
-
-   game.levelData = JSON.parse(game.cache.getText('bathroomLevel'));
-   game.levelData.bathroomBackground.forEach(function(element) {
-     game.backgroundLayer.create(element.x, element.y, element.image);
-   });
-   JSONLoad(game, game.backgroundLayer, 1);
-
-   game.levelData = JSON.parse(game.cache.getText('bathroomLevel'));
-   game.levelData.bathroomMain.forEach(function(element) {
-     game.mainLayer.create(element.x, element.y, element.image)
-   }, this);
-   JSONLoad(game, game.mainLayer, 0);
-
-
-   game.levelData = JSON.parse(game.cache.getText('bathroomLevel'));
-   game.levelData.bathroomCollision.forEach(function(element, arrayDummy) {
-     arrayDummyAdd();
-     colBox = game.collisionLayer.create(element.x, element.y, element.image);
-     colBox.scale.setTo(level1CollisionX[arrayDummy], level1CollisionY[arrayDummy]);
-     colBox.body.immovable = true;
-     colBox.anchor.setTo(0);
-   });
-
-
-   ventDoor = game.doorLayer.create(156, 516, 'ventDoor');
-   ventDoor.frame = 0;
-   ventDoor.scale.setTo(3);
-   ventDoor.smoothed = false;
-   ventDoor.anchor.setTo(1);
-
-
-   var arrayDummy = 0;
-   game.camera.follow(camera, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
+   game.camera.follow(camera, Phaser.Camera.FOLLOW_LOCKON, 1, 1);
    game.camera.x = 800;
    game.camera.x = 600;
    player.frame = 0;
@@ -342,7 +359,6 @@
    player.smoothed = false;
    game.physics.arcade.enable(player);
    player.body.gravity.y = 500;
-   player.body.collideWorldBounds = true;
    player.body.setSize(24, 32, 4, 1);
 
    player.animations.add('run', [1, 2, 3, 4, 5, 6, 7, 8], 10, true);
@@ -355,9 +371,10 @@
    wrench.frame = 1;
    wrench.body.setRectangle(60, 90, 80, 0, 0);
 
-   new doorBlueFnc(game, wrench, 1010, 612, 950, 210);
 
    wrench.animations.add('swing', [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 1], 30, false);
+
+   loadLevel1();
 
    game.add.tween(fade).to({
      alpha: 0
@@ -399,4 +416,67 @@
      game.debug.physicsGroup(game.collisionLayer);
      game.debug.physicsGroup(game.doorLayer);
    }
+ }
+
+ function loadLevel1() {
+   game.world.setBounds(0, 0, 2300, 900);
+
+   game.levelData = JSON.parse(game.cache.getText('bathroomLevel'));
+   game.levelData.bathroomBackground.forEach(function(element) {
+     game.backgroundLayer.create(element.x, element.y, element.image);
+   });
+   JSONLoad(game, game.backgroundLayer, 1);
+
+   game.levelData.bathroomMain.forEach(function(element) {
+     game.mainLayer.create(element.x, element.y, element.image)
+   }, this);
+   JSONLoad(game, game.mainLayer, 0);
+
+   game.levelData.bathroomCollision.forEach(function(element, arrayDummy) {
+     arrayDummyAdd();
+     colBox = game.collisionLayer.create(element.x, element.y, element.image);
+     colBox.scale.setTo(level1CollisionX[arrayDummy], level1CollisionY[arrayDummy]);
+     colBox.body.immovable = true;
+     colBox.anchor.setTo(0);
+   });
+   arrayDummy = 0;
+
+   ventDoor = game.doorLayer.create(156, 516, 'ventDoor');
+   ventDoor.frame = 0;
+   ventDoor.scale.setTo(3);
+   ventDoor.smoothed = false;
+   ventDoor.anchor.setTo(1);
+   //game.physics.arcade.enable(ventDoor);
+   //ventDoor.body.immovable = true;
+
+   new doorBlueFnc(game, wrench, 1010, 412, 950, 210);
+
+   activeLevel = 1;
+ }
+
+ function loadLevel2() {
+   game.world.setBounds(0, 0, 6000, 6000);
+
+   game.levelData = JSON.parse(game.cache.getText('Level2JSON'));
+
+   game.levelData.level2Main.forEach(function(element) {
+     game.backgroundLayer.create(element.x, element.y, element.image);
+   });
+   JSONLoad(game, game.backgroundLayer, 1);
+
+   game.levelData.level2Main.forEach(function(element) {
+     game.mainLayer.create(element.x, element.y, element.image)
+   }, this);
+   JSONLoad(game, game.mainLayer, 0);
+   console.log(arrayDummy);
+   game.levelData.level2Collision.forEach(function(element, arrayDummy) {
+     arrayDummyAdd();
+     colBox = game.collisionLayer.create(element.x, element.y, element.image);
+     colBox.scale.setTo(level2CollisionX[arrayDummy], level2CollisionY[arrayDummy]);
+     colBox.body.immovable = true;
+     colBox.anchor.setTo(0);
+
+     console.log(arrayDummy);
+   });
+   arrayDummy = 0;
  }

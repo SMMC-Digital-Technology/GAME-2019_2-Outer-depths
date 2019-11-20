@@ -1,0 +1,28 @@
+{"frames": [
+
+{
+	"filename": "bathroom-6.png.png",
+	"frame": {"x":0,"y":0,"w":800,"h":300},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":800,"h":300},
+	"sourceSize": {"w":800,"h":300}
+},
+{
+	"filename": "bathroom-7.png.png",
+	"frame": {"x":800,"y":0,"w":800,"h":300},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":800,"h":300},
+	"sourceSize": {"w":800,"h":300}
+}],
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "level2(1).png",
+	"format": "RGBA8888",
+	"size": {"w":1600,"h":300},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:4b45cd50d2fe36bfe2f3c1292d629504:73b69167da0d5fc0f289fba620fe8e1f:f3cb5fdcc24d5777a3d2efdbdfbd6238$"
+}
+}
