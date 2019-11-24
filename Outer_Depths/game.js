@@ -28,7 +28,7 @@
 
  doorBlueFnc = function(game, wrench, doorX, doorY, panelX, panelY) {
 
-   Phaser.Sprite.call(this, game, doorX, doorY, );
+   Phaser.Sprite.call(this, game, doorX, doorY);
    this.door = game.doorLayer.create(this.x, this.y, 'doorBlue');
    this.door.scale.setTo(3);
    this.door.smoothed = false;
@@ -59,7 +59,291 @@
    }
 
  };
+ healthFnc = function(game, healthX, healthY, healthNumber) {
+   this.healthNumber = healthNumber
+   Phaser.Sprite.call(this, game, 0, 0);
+   this.health = game.enemies.create(this.x + game.camera.x, this.y + game.camera.y, 'health');
 
+
+   this.health.frame = 5;
+   this.health.scale.setTo(3);
+   this.health.anchor.setTo(0.5);
+   this.health.smoothed = false;
+   this.health.fixedToCamera = true;
+   this.health.cameraOffset.setTo(healthX, healthY);
+
+   game.add.existing(this);
+
+ }
+ healthFnc.prototype = Object.create(Phaser.Sprite.prototype);
+ healthFnc.prototype.constructor = healthFnc;
+
+ healthFnc.prototype.update = function() {
+   if (playerHealth < (this.healthNumber + 1)) {
+     this.health.frame = 6;
+   } else {
+     this.health.frame = 5;
+   }
+ }
+ droidFnc = function(game, droidX, droidY, doPatrol, patrol1, patrol2) {
+   Phaser.Sprite.call(this, game, droidX, droidY);
+
+   this.droid = game.enemies.create(this.x, this.y, 'droid');
+   this.droid.animations.add('flash', [0, 1], 2, true);
+   this.droid.animations.play('flash');
+   this.droid.scale.setTo(3);
+   this.droid.smoothed = false;
+   this.droid.anchor.setTo(0.5);
+   game.physics.arcade.enable(this.droid);
+   this.droid.body.immovable = false;
+   this.droid.body.setSize(23, 34, 5, 0);
+   this.droid.body.gravity.y = 160;
+
+   this.jumpRightHB1 = game.enemies.create(0, 0, 'pixel');
+   this.jumpRightHB1.scale.setTo(3);
+   this.jumpRightHB1.anchor.setTo(0.5);
+   this.jumpRightHB1.alpha = 0;
+   game.physics.arcade.enable(this.jumpRightHB1);
+   this.jumpRightHB1.body.immovable = true;
+   this.jumpRightHB1.body.setSize(20, 10, 0, -16);
+
+   this.jumpRightHB2 = game.enemies.create(0, 0, 'pixel');
+   this.jumpRightHB2.scale.setTo(3);
+   this.jumpRightHB2.anchor.setTo(0.5);
+   this.jumpRightHB2.alpha = 0;
+   game.physics.arcade.enable(this.jumpRightHB2);
+   this.jumpRightHB2.body.immovable = true;
+   this.jumpRightHB2.body.setSize(20, 24.5, 0, -6);
+
+   this.jumpLeftHB1 = game.enemies.create(0, 0, 'pixel');
+   this.jumpLeftHB1.scale.setTo(3);
+   this.jumpLeftHB1.anchor.setTo(0.5);
+   this.jumpLeftHB1.alpha = 0;
+   game.physics.arcade.enable(this.jumpLeftHB1);
+   this.jumpLeftHB1.body.immovable = true;
+   this.jumpLeftHB1.body.setSize(20, 10, -20, -16);
+
+   this.jumpLeftHB2 = game.enemies.create(0, 0, 'pixel');
+   this.jumpLeftHB2.scale.setTo(3);
+   this.jumpLeftHB2.anchor.setTo(0.5);
+   this.jumpLeftHB2.alpha = 0;
+   game.physics.arcade.enable(this.jumpLeftHB2);
+   this.jumpLeftHB2.body.immovable = true;
+   this.jumpLeftHB2.body.setSize(20, 24.5, -20, -6);
+
+   this.droidHB = game.enemies.create(this.x, this.y, 'droid');
+   this.droidHB.alpha = 0;
+   game.physics.p2.enable([this.droidHB], true);
+   this.droidHB.body.setRectangle(50, 50, 0, 0, 0);
+
+   this.baton = game.weapons.create(this.x - 22, this.y + 7, 'baton');
+   this.baton.animations.add('steady', [0, 1, 2], 20, false);
+   this.baton.animations.add('swing', [3, 4, 5, 6, 7, 8, 9, 10, 11, 0], 20, false);
+   this.baton.scale.setTo(3);
+   this.baton.anchor.setTo(0.5);
+   this.baton.smoothed = false;
+   this.baton.alpha = 0.6;
+   game.physics.p2.enable([this.baton], true);
+   this.baton.body.setRectangle(70, 100, -65, 0, 0);
+   this.fase = game.add.tween(this.baton).to({
+     alpha: 0.3
+   }, 500, Phaser.Easing.Linear.None, true, 0, -1);
+   this.fase.yoyo(true, 0);
+
+   this.seePlayer == false;
+   this.attackTimer = 0;
+   this.attack = 0;
+   this.droidInvincibility = 0;
+   this.droidHealth = 3;
+   this.jump = false;
+
+   game.add.existing(this);
+ }
+ droidFnc.prototype = Object.create(Phaser.Sprite.prototype);
+ droidFnc.prototype.constructor = droidFnc;
+ droidFnc.prototype.update = function() {
+
+   game.droidInvincibilityDummy = this.droidInvincibility;
+   game.droidHealthDummy = this.droidHealth;
+   game.attackDummy = this.attack;
+   game.physics.p2.setPostBroadphaseCallback(this.hitboxCheckDroidBaton, this, this.attack, this.droidInvincibility, this.droidHealth);
+
+   this.game.physics.arcade.collide(game.collisionLayer, this.droid);
+   this.cantJumpCheckRight = this.game.physics.arcade.overlap(game.collisionLayer, this.jumpRightHB1);
+   this.canJumpCheckRight = this.game.physics.arcade.overlap(game.collisionLayer, this.jumpRightHB2);
+   this.cantJumpCheckLeft = this.game.physics.arcade.overlap(game.collisionLayer, this.jumpLeftHB1);
+   this.canJumpCheckLeft = this.game.physics.arcade.overlap(game.collisionLayer, this.jumpLeftHB2);
+
+   if (this.attack == 0 && this.attackTimer > 0) {
+     this.attackTimer -= 1;
+   }
+
+   if (this.droidInvincibility > 0 && this.droidInvincibility != 99) {
+     this.droidInvincibility -= 1;
+     this.droid.alpha = 0.4;
+   } else if (this.droidInvincibility = 0) {
+     this.droid.alpha = 1;
+   }
+
+   if (this.attack == 2 && this.attackTimer < 80) {
+     this.attackTimer += 1;
+   } else if (this.attack == 2) {
+     this.attack = 3;
+   }
+
+   if (this.attack == 3 && this.attackTimer == 80 && Math.abs(this.droid.x - player.x) < 150 && player.y > (this.droid.y - 120) && player.y < (this.droid.y + 40)) {
+     this.baton.animations.play('swing');
+     this.attackTimer -= 3;
+   } else if (this.attack == 3 && this.attackTimer < 79) {
+     this.attackTimer -= 7;
+   }
+
+   if (this.attackTimer < -80) {
+     this.attackTimer = 120;
+     this.attack = 0;
+   }
+
+   if (player.x > (this.droid.x - 250) && player.x < (this.droid.x + 250) && player.y > (this.droid.y - 100) && player.y < (this.droid.y + 40) && this.attack == 1) {
+     this.attack = 2;
+     this.baton.animations.play('steady');
+   }
+
+   if (player.x > (this.droid.x - 400) && player.x < (this.droid.x + 400) && player.y > (this.droid.y - 450) && player.y < (this.droid.y + 350)) {
+     this.seePlayer = true;
+   }
+
+   if (this.seePlayer == true && player.x > (this.droid.x - 650) && player.x < (this.droid.x + 650)) {
+     if (player.x > this.droid.x) {
+       if (this.attack == 0) {
+         this.droid.body.velocity.x -= 15;
+       } else {
+         this.droid.body.velocity.x += 10;
+       }
+       this.baton.body.x = this.droid.x + 22;
+       this.droid.scale.x = -3;
+       if (this.baton.scale.x != -3) {
+         this.baton.body.setRectangle(70, 100, 65, 0, 0);
+       }
+       this.baton.scale.x = -3;
+
+
+     } else {
+       if ((this.attack == 0 && Math.abs(this.droid.x - player.x) < 300) || Math.abs(this.droid.x - player.x) < 150) {
+         this.droid.body.velocity.x += 15;
+       } else {
+         this.droid.body.velocity.x -= 10;
+       }
+       this.baton.body.x = this.droid.x - 22;
+       this.droid.scale.x = 3;
+       if (this.baton.scale.x != 3) {
+         this.baton.body.setRectangle(70, 100, -65, 0, 0);
+       }
+       this.baton.scale.x = 3;
+
+     }
+
+     if (this.attackTimer == 0 && this.attack == 0) {
+       this.attack = 1;
+     }
+   } else {
+     this.seePlayer = false;
+   }
+
+   if ((this.attack == 0 && Math.abs(this.droid.x - player.x) < 300) || Math.abs(this.droid.x - player.x) < 200) {
+     if (this.droid.body.velocity.x < -180) {
+       this.droid.body.velocity.x = -180;
+     } else if (this.droid.body.velocity.x > 180) {
+       this.droid.body.velocity.x = 180;
+     }
+   } else {
+     if (this.droid.body.velocity.x < -100) {
+       this.droid.body.velocity.x = -100;
+     } else if (this.droid.body.velocity.x > 100) {
+       this.droid.body.velocity.x = 100;
+     }
+   }
+   if (this.attack != 0) {
+     this.baton.body.y = this.droid.y + 7 - (this.attackTimer / 4);
+   } else {
+     this.baton.body.y = this.droid.y + 7;
+   }
+   this.jumpRightHB1.x = this.droid.x + this.droid.body.velocity.x / 60;
+   this.jumpRightHB1.y = this.droid.y + this.droid.body.velocity.y / 60;
+   this.jumpRightHB2.x = this.droid.x + this.droid.body.velocity.x / 60;
+   this.jumpRightHB2.y = this.droid.y + this.droid.body.velocity.y / 60;
+   this.jumpLeftHB1.x = this.droid.x + this.droid.body.velocity.x / 60;
+   this.jumpLeftHB1.y = this.droid.y + this.droid.body.velocity.y / 60;
+   this.jumpLeftHB2.x = this.droid.x + this.droid.body.velocity.x / 60;
+   this.jumpLeftHB2.y = this.droid.y + this.droid.body.velocity.y / 60;
+   this.droidHB.body.x = this.droid.x + this.droid.body.velocity.x / 60;
+   this.droidHB.body.y = this.droid.y + this.droid.body.velocity.y / 60;
+
+   if (this.droid.body.velocity.x > 0 || this.droid.body.touching.right) {
+     if (this.canJumpCheckRight && this.cantJumpCheckRight == false) {
+       this.droid.body.velocity.y = -100;
+       this.jump = true;
+     } else {
+       if (this.droid.body.touching.down == false) {
+         this.droid.body.velocity.y = 200;
+       }
+       this.jump = false;
+     }
+   } else {
+     if (this.canJumpCheckLeft && this.cantJumpCheckLeft == false) {
+       this.droid.body.velocity.y = -100;
+       this.jump = true;
+     } else {
+       if (this.droid.body.touching.down == false) {
+         this.droid.body.velocity.y = 200;
+       }
+       this.jump = false;
+     }
+   }
+
+   this.game.physics.arcade.collide(game.collisionLayer, this.droid);
+
+
+   if (this.droidHealth <= 0 && this.droidInvincibility != 99) {
+     this.jumpRightHB1.kill();
+     this.jumpRightHB2.kill();
+     this.jumpLeftHB1.kill();
+     this.jumpLeftHB2.kill();
+     this.droidHB.kill();
+     this.droid.kill();
+     this.baton.kill();
+     this.smallExplosion = game.enemies.create(this.droid.x, this.droid.y, 'smallExplosion');
+     this.smallExplosion.alpha = 0.8;
+     this.smallExplosion.anchor.setTo(0.5);
+     this.smallExplosion.scale.setTo(3);
+     this.smallExplosion.animations.add('fadeExplosion', [0, 1, 2, 3, 4, 5, 6], 15, false);
+     this.smallExplosion.animations.play('fadeExplosion');
+     this.droidInvincibility = 99;
+     this.destroy();
+   }
+
+ }
+
+ this.droidFnc.prototype.hitboxCheckDroidBaton = function(body1, body2, attackDummy, droidInvincibilityDummy, droidHealthDummy) {
+   if (((((body1.sprite.key === 'baton' && body2.sprite.key === 'playerHB') || (body2.sprite.key === 'baton' && body1.sprite.key === 'playerHB')) && this.attack == 3 && this.attackTimer < 30) || ((body1.sprite.key === 'droid' && body2.sprite.key === 'playerHB') || (body2.sprite.key === 'droid' && body1.sprite.key === 'playerHB'))) && playerInvincibility == 0) {
+     playerHealth -= 1;
+     playerInvincibility = 60;
+   }
+
+   if (((body1.sprite.key === 'wrench' && body2.sprite.key === 'droid') || (body2.sprite.key === 'wrench' && body1.sprite.key === 'droid')) && swing == 1 && this.droidInvincibility == 0) {
+     this.droidHealth -= 1;
+     this.droidInvincibility = 75;
+     if (player.x < this.droid.x) {
+       this.droid.body.velocity.x += 500;
+       this.droid.body.velocity.y += -90;
+     } else {
+       this.droid.body.velocity.x += -500;
+       this.droid.body.velocity.y += -90;
+
+     }
+   }
+   return false;
+
+ }
  var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'game-world', {
    preload: preload,
    create: create,
@@ -74,14 +358,16 @@
  var jumping = false;
  var level1CollisionX = [1600, 21, 69, 9, 15, 1056, 24, 12, 12, 12, 800, 12, 12, 12, 12, 12, 12, 12, 12, 12, 100, 950, 30, 75, 100, 30, 159, 260, 75, 40, 120, 159, 200, 250, 40];
  var level1CollisionY = [100, 100, 60, 36, 400, 39, 162, 12, 12, 12, 200, 12, 12, 12, 12, 12, 12, 12, 12, 12, 183, 20, 200, 112, 70, 500, 210, 200, 100, 700, 24, 24, 30, 30, 50];
- var level2CollisionX = [123, 1000, 15, 1200];
- var level2CollisionY = [200, 200, 400, 53];
+ var level2CollisionX = [123, 3000, 15, 1200, 72, 204, 72];
+ var level2CollisionY = [200, 200, 400, 53, 111, 100, 51];
  var level1Data = [];
  var arrayDummy = 0;
  var activeLevel = 0;
  var transition = 0;
  var transitionYDummy;
  var transitionXDummy;
+ var playerHealth = 4;
+ var playerInvincibility = 0;
 
  function preload() {
    loadingLabel = game.add.text(80, 150, 'loading...', {
@@ -97,10 +383,8 @@
    game.load.spritesheet('player', 'assets/player/run.png', 32, 33);
    game.load.spritesheet('peaShooter', 'assets/weapons/shooter.png', 32, 32);
    game.load.spritesheet('wrench', 'assets/weapons/wrench.png', 43, 43);
-   game.load.image('floor', 'assets/floor.png');
-   game.load.image('yellow', 'assets/yellow.png');
-   //  game.load.text('level1', 'assets/greenWall/walls.json');
 
+   game.load.image('playerHB', 'assets/player/playerHB.png');
    game.load.image('gameTitle', 'assets/title/game.png');
    game.load.image('prompt', 'assets/title/prompt.png');
    game.load.image('ventDoor', 'assets/environments/bathroom/ventDoor.png');
@@ -109,15 +393,16 @@
    game.load.atlasJSONHash('bathroomSprites', 'assets/environments/bathroom/bathroom.png', 'assets/atlasData/bathroom.json');
    game.load.atlasJSONHash('panel', 'assets/environments/doors/panel.png', 'assets/atlasData/panel.json');
    game.load.atlasJSONHash('level2(1)', 'assets/environments/level2/level2(1).png', 'assets/atlasData/level2(1).json');
+   game.load.atlasJSONHash('smallExplosion', 'assets/misc/smallExplosion.png', 'assets/atlasData/smallExplosion.json');
    game.load.atlasJSONHash('droid', 'assets/enemies/droid.png', 'assets/atlasData/droid.json');
-
-
-
+   game.load.atlasJSONHash('baton', 'assets/enemies/baton.png', 'assets/atlasData/baton.json');
+   game.load.atlasJSONHash('health', 'assets/player/health.png', 'assets/atlasData/health.json');
+   game.load.atlasJSONHash('healthBackground', 'assets/player/healthBackground.png', 'assets/atlasData/healthBackground.json');
  }
 
  function create() {
    game.physics.startSystem(Phaser.Physics.P2JS);
-   game.physics.p2.setPostBroadphaseCallback(hitboxCheck, this, 1);
+   game.physics.p2.setPostBroadphaseCallback(hitboxCheckWrench, this);
 
    loadingLabel.kill();
    game.stars1 = this.add.group();
@@ -145,6 +430,7 @@
    game.enemies = game.add.group();
    game.weapons = game.add.group();
    game.foregroundLayer = game.add.group();
+   game.hud = game.add.group();
 
    game.physics.arcade.enable(game.collisionLayer);
    game.collisionLayer.enableBody = true;
@@ -191,6 +477,12 @@
      game.physics.arcade.collide(player, game.collisionLayer);
      game.physics.arcade.collide(player, game.doorLayer);
 
+     if (playerInvincibility > 0) {
+       playerInvincibility -= 1;
+       player.alpha = 0.4;
+     } else {
+       player.alpha = 1;
+     }
      if (player.body.velocity.x > 0) {
        player.body.velocity.x -= 20;
      } else if (player.body.velocity.x < 0) {
@@ -203,8 +495,11 @@
          player.body.velocity.x = -200;
 
        } else if (D.isDown) {
+
          player.body.velocity.x = 200;
+
        }
+
      } else {
        player.animations.stop('run');
        player.frame = 0;
@@ -259,7 +554,7 @@
        spaceTimer = 0;
        jumping = false;
      }
-     if (spaceTimer <= -600) {
+     if (spaceTimer <= -600 || player.body.touching.up) {
        spaceDown = 0;
        jumping = false;
        spaceTimer = 0;
@@ -281,25 +576,30 @@
 
        loadLevel2();
        transition = 1;
+       player.body.velocity.y = -300;
+       player.body.velocity.x = 0;
        player.x = 210;
        player.y = game.world.height - 20;
-       player.body.velocity.y = -300;
        transitionXDummy = player.x;
        transitionYDummy = player.y;
      }
 
-     if (transition == 1) {
-       if ((player.y > transitionYDummy - 150) && (player.x == transitionXDummy)) {
-         player.body.velocity.y -= 16;
+     if (transition != 0) {
+       if (player.y > transitionYDummy - 150) {
+         player.body.velocity.y -= 15;
+         player.body.velocity.x = 0;
        } else {
-         if (player.x == transitionXDummy) {
-           player.body.velocity.x = 16;
-         } else {
-           player.body.velocity.x += 35;
-           player.body.velocity.y += 16;
+         if (transition == 1) {
+           player.x = transitionXDummy + 16;
+           player.body.velocity.x = 0;
+           transition = 2;
          }
-
        }
+       if (transition == 2) {
+         player.body.velocity.x += 35;
+         player.body.velocity.y += 15;
+       }
+
        if (player.body.touching.down) {
          transition = 0;
          player.body.velocity.x = 0;
@@ -314,6 +614,9 @@
      } else {
        mouse1down = 0;
      }
+     playerHB.body.x = player.x + (player.body.velocity.x / 60);
+     playerHB.body.y = player.y + (player.body.velocity.y / 60);
+
    }
  }
 
@@ -346,9 +649,16 @@
      fill: '#ffffff'
    });
 
-   player = game.add.sprite(800, 600, 'player');
-   wrench = game.add.sprite(800, 600, 'wrench');
+   player = game.playerLayer.create(800, 600, 'player');
+   playerHB = game.add.sprite(0, 0, 'playerHB');
+   wrench = game.weapons.create(800, 600, 'wrench');
    camera = game.add.sprite(400, 300);
+   healthBackground = game.hud.create(0, 0, 'healthBackground');
+   healthHead = game.hud.create(0, 0, 'health');
+
+   for (var i = 0; i < 4; i++) {
+     new healthFnc(game, (i * 60) + 150, 70, i);
+   }
 
    game.camera.follow(camera, Phaser.Camera.FOLLOW_LOCKON, 1, 1);
    game.camera.x = 800;
@@ -363,7 +673,13 @@
 
    player.animations.add('run', [1, 2, 3, 4, 5, 6, 7, 8], 10, true);
 
+   playerHB.alpha = 0;
+   game.physics.p2.enable([playerHB], true);
+   playerHB.body.setRectangle(50, 85, 0, 0, 0);
+   playerHB.body.immovable = true;
+
    game.physics.p2.enable([wrench], true);
+   wrench.body.immovable = true;
    wrench.anchor.setTo(.15, .5);
    wrench.smoothed = false;
    wrench.scale.setTo(3);
@@ -371,9 +687,22 @@
    wrench.frame = 1;
    wrench.body.setRectangle(60, 90, 80, 0, 0);
 
-
    wrench.animations.add('swing', [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 1], 30, false);
 
+   healthBackground.scale.setTo(3);
+   healthBackground.anchor.setTo(0.5);
+   healthBackground.smoothed = false;
+   healthBackground.fixedToCamera = true;
+   healthBackground.cameraOffset.setTo(242, 70);
+
+   healthBackground.animations.add('charge', [0, 1, 2, 3, 4, 5, 6], 10, true)
+   healthBackground.animations.play('charge')
+
+   healthHead.scale.setTo(3);
+   healthHead.anchor.setTo(0.5);
+   healthHead.smoothed = false;
+   healthHead.fixedToCamera = true;
+   healthHead.cameraOffset.setTo(75, 64);
    loadLevel1();
 
    game.add.tween(fade).to({
@@ -397,7 +726,7 @@
    arrayDummy = arrayDummy + 1;
  }
 
- function hitboxCheck(body1, body2) {
+ function hitboxCheckWrench(body1, body2) {
    if (((body1.sprite.key === 'wrench' && body2.sprite.key === 'panel') || (body2.sprite.key === 'wrench' && body1.sprite.key === 'panel')) && swing == 1) {
      if (body2.sprite.key === 'panel') {
        body2.sprite.frame = 1;
@@ -405,16 +734,16 @@
        body1.sprite.frame = 1;
      }
    }
-   console.log(swing);
-   return false;
-
  }
+
 
  function render() {
    if (gameMode == 2) {
-     game.debug.body(player);
+     // game.debug.body(player);
      game.debug.physicsGroup(game.collisionLayer);
-     game.debug.physicsGroup(game.doorLayer);
+     // game.debug.physicsGroup(game.doorLayer);
+     game.debug.physicsGroup(game.enemies);
+
    }
  }
 
@@ -468,15 +797,18 @@
      game.mainLayer.create(element.x, element.y, element.image)
    }, this);
    JSONLoad(game, game.mainLayer, 0);
-   console.log(arrayDummy);
    game.levelData.level2Collision.forEach(function(element, arrayDummy) {
      arrayDummyAdd();
      colBox = game.collisionLayer.create(element.x, element.y, element.image);
      colBox.scale.setTo(level2CollisionX[arrayDummy], level2CollisionY[arrayDummy]);
      colBox.body.immovable = true;
      colBox.anchor.setTo(0);
-
-     console.log(arrayDummy);
    });
    arrayDummy = 0;
+   game.levelData.level2Droids.forEach(function(element, arrayDummy) {
+     arrayDummyAdd();
+     new droidFnc(game, element.x, element.y, false, 0, 0);
+   });
+   arrayDummy = 0;
+
  }
