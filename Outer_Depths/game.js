@@ -39,12 +39,18 @@
    this.panel = game.doorLayer.create(panelX, panelY, 'panel');
    this.panel.scale.setTo(3);
    this.panel.smoothed = false;
-   game.physics.p2.enable([this.panel], true);
+   game.physics.p2.enable([this.panel], false);
    this.panel.anchor.setTo(0);
    this.panel.body.setRectangle(100, 90, 42, 32, 0);
    this.panel.body.static = true;
 
-   this.doorOpen = false;
+   if (level1Data[0] == true) {
+     this.doorOpen = true;
+     this.panel.frame = 1;
+     this.door.y -= 200;
+   } else {
+     this.doorOpen = false;
+   }
    game.add.existing(this);
  };
  doorBlueFnc.prototype = Object.create(Phaser.Sprite.prototype);
@@ -52,6 +58,7 @@
 
  doorBlueFnc.prototype.update = function() {
    if (this.panel.frame == 1 && this.doorOpen == false) {
+     level1Data[0] = true;
      this.doorOpen = true;
      game.add.tween(this.door).to({
        y: '-150'
@@ -62,7 +69,7 @@
  healthFnc = function(game, healthX, healthY, healthNumber) {
    this.healthNumber = healthNumber
    Phaser.Sprite.call(this, game, 0, 0);
-   this.health = game.enemies.create(this.x + game.camera.x, this.y + game.camera.y, 'health');
+   this.health = game.hud.create(this.x + game.camera.x, this.y + game.camera.y, 'health');
 
 
    this.health.frame = 5;
@@ -85,7 +92,7 @@
      this.health.frame = 5;
    }
  }
- droidFnc = function(game, droidX, droidY, doPatrol, patrol1, patrol2) {
+ droidFnc = function(game, droidX, droidY, doPatrol, patrol1, patrol2, droidNumber) {
    Phaser.Sprite.call(this, game, droidX, droidY);
 
    this.droid = game.enemies.create(this.x, this.y, 'droid');
@@ -133,29 +140,32 @@
 
    this.droidHB = game.enemies.create(this.x, this.y, 'droid');
    this.droidHB.alpha = 0;
-   game.physics.p2.enable([this.droidHB], true);
+   game.physics.p2.enable([this.droidHB], false);
    this.droidHB.body.setRectangle(50, 50, 0, 0, 0);
 
-   this.baton = game.weapons.create(this.x - 22, this.y + 7, 'baton');
+   this.baton = game.enemies.create(this.x - 22, this.y + 7, 'baton');
    this.baton.animations.add('steady', [0, 1, 2], 20, false);
    this.baton.animations.add('swing', [3, 4, 5, 6, 7, 8, 9, 10, 11, 0], 20, false);
    this.baton.scale.setTo(3);
    this.baton.anchor.setTo(0.5);
    this.baton.smoothed = false;
    this.baton.alpha = 0.6;
-   game.physics.p2.enable([this.baton], true);
+   game.physics.p2.enable([this.baton], false);
    this.baton.body.setRectangle(70, 100, -65, 0, 0);
    this.fase = game.add.tween(this.baton).to({
      alpha: 0.3
    }, 500, Phaser.Easing.Linear.None, true, 0, -1);
    this.fase.yoyo(true, 0);
 
-   this.seePlayer == false;
-   this.attackTimer = 0;
-   this.attack = 0;
-   this.droidInvincibility = 0;
-   this.droidHealth = 3;
+   this.droidNumber = droidNumber;
+   this.seePlayer = false;
+   droidAttackTimer[droidNumber] = 0;
+   droidAttack[droidNumber] = 0;
+   droidInvincibility[droidNumber] = 0;
+   droidHealth[droidNumber] = 3;
    this.jump = false;
+
+   game.physics.p2.setPostBroadphaseCallback(this.hitboxCheckDroidBaton, this, );
 
    game.add.existing(this);
  }
@@ -163,147 +173,148 @@
  droidFnc.prototype.constructor = droidFnc;
  droidFnc.prototype.update = function() {
 
-   game.droidInvincibilityDummy = this.droidInvincibility;
-   game.droidHealthDummy = this.droidHealth;
-   game.attackDummy = this.attack;
-   game.physics.p2.setPostBroadphaseCallback(this.hitboxCheckDroidBaton, this, this.attack, this.droidInvincibility, this.droidHealth);
+   droidNumber = this.droidNumber;
 
-   this.game.physics.arcade.collide(game.collisionLayer, this.droid);
-   this.cantJumpCheckRight = this.game.physics.arcade.overlap(game.collisionLayer, this.jumpRightHB1);
-   this.canJumpCheckRight = this.game.physics.arcade.overlap(game.collisionLayer, this.jumpRightHB2);
-   this.cantJumpCheckLeft = this.game.physics.arcade.overlap(game.collisionLayer, this.jumpLeftHB1);
-   this.canJumpCheckLeft = this.game.physics.arcade.overlap(game.collisionLayer, this.jumpLeftHB2);
+   if (activeLevel == 2) {
+     this.game.physics.arcade.collide(game.collisionLayer, this.droid);
+     this.cantJumpCheckRight = this.game.physics.arcade.overlap(game.collisionLayer, this.jumpRightHB1);
+     this.canJumpCheckRight = this.game.physics.arcade.overlap(game.collisionLayer, this.jumpRightHB2);
+     this.cantJumpCheckLeft = this.game.physics.arcade.overlap(game.collisionLayer, this.jumpLeftHB1);
+     this.canJumpCheckLeft = this.game.physics.arcade.overlap(game.collisionLayer, this.jumpLeftHB2);
 
-   if (this.attack == 0 && this.attackTimer > 0) {
-     this.attackTimer -= 1;
-   }
+     if (droidAttack[droidNumber] == 0 && droidAttackTimer[droidNumber] > 0) {
+       droidAttackTimer[droidNumber] -= 1;
+     }
 
-   if (this.droidInvincibility > 0 && this.droidInvincibility != 99) {
-     this.droidInvincibility -= 1;
-     this.droid.alpha = 0.4;
-   } else if (this.droidInvincibility = 0) {
-     this.droid.alpha = 1;
-   }
+     if (droidInvincibility[droidNumber] > 0 && droidInvincibility[droidNumber] != 99) {
+       droidInvincibility[droidNumber] -= 1;
+       this.droid.alpha = 0.4;
+     } else if (droidInvincibility[droidNumber] == 0) {
+       this.droid.alpha = 1;
+     }
 
-   if (this.attack == 2 && this.attackTimer < 80) {
-     this.attackTimer += 1;
-   } else if (this.attack == 2) {
-     this.attack = 3;
-   }
+     if (droidAttack[droidNumber] == 2 && droidAttackTimer[droidNumber] < 80) {
+       droidAttackTimer[droidNumber] += 1;
+     } else if (droidAttack[droidNumber] == 2) {
+       droidAttack[droidNumber] = 3;
+     }
 
-   if (this.attack == 3 && this.attackTimer == 80 && Math.abs(this.droid.x - player.x) < 150 && player.y > (this.droid.y - 120) && player.y < (this.droid.y + 40)) {
-     this.baton.animations.play('swing');
-     this.attackTimer -= 3;
-   } else if (this.attack == 3 && this.attackTimer < 79) {
-     this.attackTimer -= 7;
-   }
+     if (droidAttack[droidNumber] == 3 && droidAttackTimer[droidNumber] == 80 && Math.abs(this.droid.x - player.x) < 150 && player.y > (this.droid.y - 120) && player.y < (this.droid.y + 40)) {
+       this.baton.animations.play('swing');
+       droidAttackTimer[droidNumber] -= 3;
+     } else if (droidAttack[droidNumber] == 3 && droidAttackTimer[droidNumber] < 79) {
+       droidAttackTimer[droidNumber] -= 7;
+     }
 
-   if (this.attackTimer < -80) {
-     this.attackTimer = 120;
-     this.attack = 0;
-   }
+     if (droidAttackTimer[droidNumber] < -80) {
+       droidAttackTimer[droidNumber] = 120;
+       droidAttack[droidNumber] = 0;
+     }
 
-   if (player.x > (this.droid.x - 250) && player.x < (this.droid.x + 250) && player.y > (this.droid.y - 100) && player.y < (this.droid.y + 40) && this.attack == 1) {
-     this.attack = 2;
-     this.baton.animations.play('steady');
-   }
+     if (player.x > (this.droid.x - 250) && player.x < (this.droid.x + 250) && player.y > (this.droid.y - 100) && player.y < (this.droid.y + 40) && droidAttack[droidNumber] == 1) {
+       droidAttack[droidNumber] = 2;
+       this.baton.animations.play('steady');
+     }
 
-   if (player.x > (this.droid.x - 400) && player.x < (this.droid.x + 400) && player.y > (this.droid.y - 450) && player.y < (this.droid.y + 350)) {
-     this.seePlayer = true;
-   }
+     if (player.x > (this.droid.x - 400) && player.x < (this.droid.x + 400) && player.y > (this.droid.y - 450) && player.y < (this.droid.y + 350)) {
+       this.seePlayer = true;
+     }
 
-   if (this.seePlayer == true && player.x > (this.droid.x - 650) && player.x < (this.droid.x + 650)) {
-     if (player.x > this.droid.x) {
-       if (this.attack == 0) {
-         this.droid.body.velocity.x -= 15;
+     if (this.seePlayer == true && player.x > (this.droid.x - 650) && player.x < (this.droid.x + 650)) {
+       if (player.x > this.droid.x) {
+         if (droidAttack[droidNumber] == 0) {
+           this.droid.body.velocity.x -= 15;
+         } else {
+           this.droid.body.velocity.x += 10;
+         }
+         this.baton.body.x = this.droid.x + 22;
+         this.droid.scale.x = -3;
+         if (this.baton.scale.x != -3) {
+           this.baton.body.setRectangle(70, 100, 65, 0, 0);
+         }
+         this.baton.scale.x = -3;
+
+
        } else {
-         this.droid.body.velocity.x += 10;
-       }
-       this.baton.body.x = this.droid.x + 22;
-       this.droid.scale.x = -3;
-       if (this.baton.scale.x != -3) {
-         this.baton.body.setRectangle(70, 100, 65, 0, 0);
-       }
-       this.baton.scale.x = -3;
+         if ((droidAttack[droidNumber] == 0 && Math.abs(this.droid.x - player.x) < 300) || Math.abs(this.droid.x - player.x) < 150) {
+           this.droid.body.velocity.x += 15;
+         } else {
+           this.droid.body.velocity.x -= 10;
+         }
+         this.baton.body.x = this.droid.x - 22;
+         this.droid.scale.x = 3;
+         if (this.baton.scale.x != 3) {
+           this.baton.body.setRectangle(70, 100, -65, 0, 0);
+         }
+         this.baton.scale.x = 3;
 
+       }
 
-     } else {
-       if ((this.attack == 0 && Math.abs(this.droid.x - player.x) < 300) || Math.abs(this.droid.x - player.x) < 150) {
-         this.droid.body.velocity.x += 15;
+       if (droidAttackTimer[droidNumber] == 0 && droidAttack[droidNumber] == 0) {
+         droidAttack[droidNumber] = 1;
+       }
+
+       if ((droidAttack[droidNumber] == 0 && Math.abs(this.droid.x - player.x) < 300) || Math.abs(this.droid.x - player.x) < 200) {
+         if (this.droid.body.velocity.x < -180) {
+           this.droid.body.velocity.x = -180;
+         } else if (this.droid.body.velocity.x > 180) {
+           this.droid.body.velocity.x = 180;
+         }
        } else {
-         this.droid.body.velocity.x -= 10;
+         if (this.droid.body.velocity.x < -100) {
+           this.droid.body.velocity.x = -100;
+         } else if (this.droid.body.velocity.x > 100) {
+           this.droid.body.velocity.x = 100;
+         }
        }
-       this.baton.body.x = this.droid.x - 22;
-       this.droid.scale.x = 3;
-       if (this.baton.scale.x != 3) {
-         this.baton.body.setRectangle(70, 100, -65, 0, 0);
+       if (droidAttack[droidNumber] != 0) {
+         this.baton.body.y = this.droid.y + 7 - (droidAttackTimer[droidNumber] / 4);
+       } else {
+         this.baton.body.y = this.droid.y + 7;
        }
-       this.baton.scale.x = 3;
-
-     }
-
-     if (this.attackTimer == 0 && this.attack == 0) {
-       this.attack = 1;
-     }
-   } else {
-     this.seePlayer = false;
-   }
-
-   if ((this.attack == 0 && Math.abs(this.droid.x - player.x) < 300) || Math.abs(this.droid.x - player.x) < 200) {
-     if (this.droid.body.velocity.x < -180) {
-       this.droid.body.velocity.x = -180;
-     } else if (this.droid.body.velocity.x > 180) {
-       this.droid.body.velocity.x = 180;
-     }
-   } else {
-     if (this.droid.body.velocity.x < -100) {
-       this.droid.body.velocity.x = -100;
-     } else if (this.droid.body.velocity.x > 100) {
-       this.droid.body.velocity.x = 100;
-     }
-   }
-   if (this.attack != 0) {
-     this.baton.body.y = this.droid.y + 7 - (this.attackTimer / 4);
-   } else {
-     this.baton.body.y = this.droid.y + 7;
-   }
-   this.jumpRightHB1.x = this.droid.x + this.droid.body.velocity.x / 60;
-   this.jumpRightHB1.y = this.droid.y + this.droid.body.velocity.y / 60;
-   this.jumpRightHB2.x = this.droid.x + this.droid.body.velocity.x / 60;
-   this.jumpRightHB2.y = this.droid.y + this.droid.body.velocity.y / 60;
-   this.jumpLeftHB1.x = this.droid.x + this.droid.body.velocity.x / 60;
-   this.jumpLeftHB1.y = this.droid.y + this.droid.body.velocity.y / 60;
-   this.jumpLeftHB2.x = this.droid.x + this.droid.body.velocity.x / 60;
-   this.jumpLeftHB2.y = this.droid.y + this.droid.body.velocity.y / 60;
-   this.droidHB.body.x = this.droid.x + this.droid.body.velocity.x / 60;
-   this.droidHB.body.y = this.droid.y + this.droid.body.velocity.y / 60;
-
-   if (this.droid.body.velocity.x > 0 || this.droid.body.touching.right) {
-     if (this.canJumpCheckRight && this.cantJumpCheckRight == false) {
-       this.droid.body.velocity.y = -100;
-       this.jump = true;
      } else {
-       if (this.droid.body.touching.down == false) {
-         this.droid.body.velocity.y = 200;
-       }
-       this.jump = false;
+       this.seePlayer = false;
      }
-   } else {
-     if (this.canJumpCheckLeft && this.cantJumpCheckLeft == false) {
-       this.droid.body.velocity.y = -100;
-       this.jump = true;
+     this.jumpRightHB1.x = this.droid.x + this.droid.body.velocity.x / 60;
+     this.jumpRightHB1.y = this.droid.y + this.droid.body.velocity.y / 60;
+     this.jumpRightHB2.x = this.droid.x + this.droid.body.velocity.x / 60;
+     this.jumpRightHB2.y = this.droid.y + this.droid.body.velocity.y / 60;
+     this.jumpLeftHB1.x = this.droid.x + this.droid.body.velocity.x / 60;
+     this.jumpLeftHB1.y = this.droid.y + this.droid.body.velocity.y / 60;
+     this.jumpLeftHB2.x = this.droid.x + this.droid.body.velocity.x / 60;
+     this.jumpLeftHB2.y = this.droid.y + this.droid.body.velocity.y / 60;
+     this.droidHB.body.x = this.droid.x + this.droid.body.velocity.x / 60;
+     this.droidHB.body.y = this.droid.y + this.droid.body.velocity.y / 60;
+
+     if (this.droid.body.velocity.x > 0 || this.droid.body.touching.right) {
+       if (this.canJumpCheckRight && this.cantJumpCheckRight == false) {
+         this.droid.body.velocity.y = -100;
+         this.jump = true;
+       } else {
+         if (this.droid.body.touching.down == false) {
+           this.droid.body.velocity.y = 200;
+         }
+         this.jump = false;
+       }
      } else {
-       if (this.droid.body.touching.down == false) {
-         this.droid.body.velocity.y = 200;
+       if (this.canJumpCheckLeft && this.cantJumpCheckLeft == false) {
+         this.droid.body.velocity.y = -100;
+         this.jump = true;
+       } else {
+         if (this.droid.body.touching.down == false) {
+           this.droid.body.velocity.y = 200;
+         }
+         this.jump = false;
        }
-       this.jump = false;
      }
+
+     this.game.physics.arcade.collide(game.collisionLayer, this.droid);
+
+
+
+     // console.log(droidNumber);
    }
-
-   this.game.physics.arcade.collide(game.collisionLayer, this.droid);
-
-
-   if (this.droidHealth <= 0 && this.droidInvincibility != 99) {
+   if ((droidHealth[droidNumber] <= 0 && droidInvincibility[droidNumber] != 99) || activeLevel != 2) {
      this.jumpRightHB1.kill();
      this.jumpRightHB2.kill();
      this.jumpLeftHB1.kill();
@@ -311,35 +322,40 @@
      this.droidHB.kill();
      this.droid.kill();
      this.baton.kill();
-     this.smallExplosion = game.enemies.create(this.droid.x, this.droid.y, 'smallExplosion');
-     this.smallExplosion.alpha = 0.8;
-     this.smallExplosion.anchor.setTo(0.5);
-     this.smallExplosion.scale.setTo(3);
-     this.smallExplosion.animations.add('fadeExplosion', [0, 1, 2, 3, 4, 5, 6], 15, false);
-     this.smallExplosion.animations.play('fadeExplosion');
-     this.droidInvincibility = 99;
+     if (droidHealth[droidNumber] <= 0 && droidInvincibility[droidNumber] != 99) {
+       this.smallExplosion = game.enemies.create(this.droid.x, this.droid.y, 'smallExplosion');
+       this.smallExplosion.alpha = 0.8;
+       this.smallExplosion.anchor.setTo(0.5);
+       this.smallExplosion.scale.setTo(3);
+       this.smallExplosion.smoothed = false;
+       this.smallExplosion.animations.add('fadeExplosion', [0, 1, 2, 3, 4, 5, 6], 15, false);
+       this.smallExplosion.animations.play('fadeExplosion');
+     }
+     droidInvincibility[droidNumber] = 99;
+     this.kill();
      this.destroy();
    }
-
  }
 
- this.droidFnc.prototype.hitboxCheckDroidBaton = function(body1, body2, attackDummy, droidInvincibilityDummy, droidHealthDummy) {
-   if (((((body1.sprite.key === 'baton' && body2.sprite.key === 'playerHB') || (body2.sprite.key === 'baton' && body1.sprite.key === 'playerHB')) && this.attack == 3 && this.attackTimer < 30) || ((body1.sprite.key === 'droid' && body2.sprite.key === 'playerHB') || (body2.sprite.key === 'droid' && body1.sprite.key === 'playerHB'))) && playerInvincibility == 0) {
+ this.droidFnc.prototype.hitboxCheckDroidBaton = function(body1, body2, ) {
+
+   // console.log(droidNumber + " L");
+
+   if (((((body1.sprite.key === 'baton' && body2.sprite.key === 'playerHB') || (body2.sprite.key === 'baton' && body1.sprite.key === 'playerHB')) && droidAttack[droidNumber] == 3 && droidAttackTimer[droidNumber] < 30) || ((body1.sprite.key === 'droid' && body2.sprite.key === 'playerHB') || (body2.sprite.key === 'droid' && body1.sprite.key === 'playerHB'))) && playerInvincibility == 0) {
      playerHealth -= 1;
      playerInvincibility = 60;
    }
+   if (((body1.sprite.key === 'wrench' && body2.sprite.key === 'droid') || (body2.sprite.key === 'wrench' && body1.sprite.key === 'droid')) && swing == 1 && droidInvincibility[droidNumber] == 0) {
+     droidHealth[droidNumber] -= 1;
+     droidInvincibility[droidNumber] = 75;
+     // if (player.x < this.droid.x) {
+     //   game.droidXDummy += 500;
+     //   game.droidYDummy += -90;
+     // } else {
+     //   game.droidXDummy += -500;
+     //   game.droidYDummy += -90;
 
-   if (((body1.sprite.key === 'wrench' && body2.sprite.key === 'droid') || (body2.sprite.key === 'wrench' && body1.sprite.key === 'droid')) && swing == 1 && this.droidInvincibility == 0) {
-     this.droidHealth -= 1;
-     this.droidInvincibility = 75;
-     if (player.x < this.droid.x) {
-       this.droid.body.velocity.x += 500;
-       this.droid.body.velocity.y += -90;
-     } else {
-       this.droid.body.velocity.x += -500;
-       this.droid.body.velocity.y += -90;
-
-     }
+     //}
    }
    return false;
 
@@ -358,9 +374,9 @@
  var jumping = false;
  var level1CollisionX = [1600, 21, 69, 9, 15, 1056, 24, 12, 12, 12, 800, 12, 12, 12, 12, 12, 12, 12, 12, 12, 100, 950, 30, 75, 100, 30, 159, 260, 75, 40, 120, 159, 200, 250, 40];
  var level1CollisionY = [100, 100, 60, 36, 400, 39, 162, 12, 12, 12, 200, 12, 12, 12, 12, 12, 12, 12, 12, 12, 183, 20, 200, 112, 70, 500, 210, 200, 100, 700, 24, 24, 30, 30, 50];
- var level2CollisionX = [123, 3000, 15, 1200, 72, 204, 72];
- var level2CollisionY = [200, 200, 400, 53, 111, 100, 51];
- var level1Data = [];
+ var level2CollisionX = [123, 2200, 15, 1200, 72, 204, 72, 2399];
+ var level2CollisionY = [200, 200, 400, 53, 111, 100, 51, 30];
+ var level1Data = [false];
  var arrayDummy = 0;
  var activeLevel = 0;
  var transition = 0;
@@ -368,6 +384,14 @@
  var transitionXDummy;
  var playerHealth = 4;
  var playerInvincibility = 0;
+ var droids = [];
+ var droidAttack = [];
+ var droidAttackTimer = [];
+ var droidInvincibility = [];
+ var droidHealth = [];
+ var droidX = [];
+ var droidY = [];
+
 
  function preload() {
    loadingLabel = game.add.text(80, 150, 'loading...', {
@@ -401,6 +425,8 @@
  }
 
  function create() {
+
+   console.log("Use A and D to move, SPACEBAR to jump, and left mouse button to attack");
    game.physics.startSystem(Phaser.Physics.P2JS);
    game.physics.p2.setPostBroadphaseCallback(hitboxCheckWrench, this);
 
@@ -452,7 +478,7 @@
    promptText.smoothed = false;
    promptText.anchor.setTo(0.5);
 
-   fade.scale.setTo(800, 600);
+   fade.scale.setTo(2300, 900);
    fade.alpha = 0;
 
    enter = game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
@@ -526,6 +552,17 @@
 
      }
 
+     if (player.y < 516 && player.x < 1103) {
+       game.add.tween(ventCover).to({
+         alpha: 0
+       }, 300, Phaser.Easing.Linear.None, true);
+     } else if (player.y > 516 || player.x > 1103) {
+       game.add.tween(ventCover).to({
+         alpha: 1
+       }, 300, Phaser.Easing.Linear.None, true);
+
+     }
+
      if (swing == 1) {
        if (player.x - (this.input.mousePointer.x + camera.x) > 0) {
          wrench.body.rotation = Phaser.Math.angleBetween(player.position.x, wrench.body.y, this.input.mousePointer.x + this.camera.x, this.input.mousePointer.y + this.camera.y) - (wrench.frame * 70) / 360 + 1;
@@ -580,10 +617,30 @@
        player.body.velocity.x = 0;
        player.x = 210;
        player.y = game.world.height - 20;
+       wrench.body.x = player.x;
+       wrench.body.y = player.y;
        transitionXDummy = player.x;
        transitionYDummy = player.y;
      }
 
+     if (activeLevel == 2 && player.y > game.world.height) {
+       game.backgroundLayer.callAll('kill');
+       game.doorLayer.callAll('kill');
+       game.mainLayer.callAll('kill');
+       game.doorLayer.callAll('kill');
+       game.collisionLayer.callAll('kill');
+       game.foregroundLayer.callAll('kill');
+       game.enemies.callAll('kill');
+
+       loadLevel1();
+       player.body.velocity.y = 0;
+       player.body.velocity.x = 0;
+       player.x = 1327;
+       player.y = 6;
+       wrench.body.x = player.x;
+       wrench.body.y = player.y;
+
+     }
      if (transition != 0) {
        if (player.y > transitionYDummy - 150) {
          player.body.velocity.y -= 15;
@@ -610,12 +667,35 @@
 
      if (game.input.activePointer.leftButton.isDown) {
        mouse1down = 1;
-       console.log((this.input.mousePointer.x + this.camera.x) + " - " + (this.input.mousePointer.y + this.camera.y));
+       //console.log((this.input.mousePointer.x + this.camera.x) + " - " + (this.input.mousePointer.y + this.camera.y));
      } else {
        mouse1down = 0;
      }
      playerHB.body.x = player.x + (player.body.velocity.x / 60);
      playerHB.body.y = player.y + (player.body.velocity.y / 60);
+
+     healthHead.frame = 0 + 4 - playerHealth;
+     if (playerHealth == 0) {
+
+       player.x = 800;
+       player.y = 600;
+       wrench.body.x = player.x;
+       wrench.body.y = player.y;
+       player.body.velocity.x = 0;
+       player.body.velocity.y = 0;
+       playerHealth = 4;
+
+       game.backgroundLayer.callAll('kill');
+       game.doorLayer.callAll('kill');
+       game.mainLayer.callAll('kill');
+       game.doorLayer.callAll('kill');
+       game.collisionLayer.callAll('kill');
+       game.enemies.callAll('kill');
+
+       loadLevel1();
+     }
+     wrench.body.velocity.x = 0;
+     wrench.body.velocity.y = 0;
 
    }
  }
@@ -635,10 +715,6 @@
    game.meteors.callAll('kill');
    game.stars1.callAll('kill');
    game.stars2.callAll('kill');
-
-
-
-
    game.titleGroup.callAll('kill');
 
 
@@ -674,11 +750,11 @@
    player.animations.add('run', [1, 2, 3, 4, 5, 6, 7, 8], 10, true);
 
    playerHB.alpha = 0;
-   game.physics.p2.enable([playerHB], true);
+   game.physics.p2.enable([playerHB], false);
    playerHB.body.setRectangle(50, 85, 0, 0, 0);
    playerHB.body.immovable = true;
 
-   game.physics.p2.enable([wrench], true);
+   game.physics.p2.enable([wrench], false);
    wrench.body.immovable = true;
    wrench.anchor.setTo(.15, .5);
    wrench.smoothed = false;
@@ -740,9 +816,9 @@
  function render() {
    if (gameMode == 2) {
      // game.debug.body(player);
-     game.debug.physicsGroup(game.collisionLayer);
+     //game.debug.physicsGroup(game.collisionLayer);
      // game.debug.physicsGroup(game.doorLayer);
-     game.debug.physicsGroup(game.enemies);
+     //game.debug.physicsGroup(game.enemies);
 
    }
  }
@@ -778,13 +854,20 @@
    //game.physics.arcade.enable(ventDoor);
    //ventDoor.body.immovable = true;
 
-   new doorBlueFnc(game, wrench, 1010, 412, 950, 210);
+   ventCover = game.foregroundLayer.create(0, 0, 'bathroomSprites');
+   ventCover.frame = 2;
+   ventCover.scale.setTo(3);
+   ventCover.smoothed = false;
+
+
+   new doorBlueFnc(game, wrench, 1010, 612, 950, 210);
 
    activeLevel = 1;
  }
 
  function loadLevel2() {
    game.world.setBounds(0, 0, 6000, 6000);
+   activeLevel = 2;
 
    game.levelData = JSON.parse(game.cache.getText('Level2JSON'));
 
@@ -807,8 +890,10 @@
    arrayDummy = 0;
    game.levelData.level2Droids.forEach(function(element, arrayDummy) {
      arrayDummyAdd();
-     new droidFnc(game, element.x, element.y, false, 0, 0);
+     droids[arrayDummy] = "droid" + (arrayDummy + 1);
+     new droidFnc(game, element.x, element.y, false, 0, 0, arrayDummy);
    });
+   // console.log(droids);
    arrayDummy = 0;
 
  }

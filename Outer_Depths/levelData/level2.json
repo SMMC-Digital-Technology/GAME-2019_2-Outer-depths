@@ -12,7 +12,8 @@
     { "image": "pixel", "x": 0, "y": 5443},
     { "image": "pixel", "x": 1314, "y": 5748},
     { "image": "pixel", "x": 1929, "y": 5799},
-    { "image": "pixel", "x": 1995, "y": 5748}
+    { "image": "pixel", "x": 1995, "y": 5748},
+    { "image": "pixel", "x": 0, "y": 5479}
 
   ],
   "level2Droids": [
