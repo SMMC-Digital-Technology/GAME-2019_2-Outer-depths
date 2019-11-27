@@ -165,7 +165,8 @@
    droidHealth[droidNumber] = 3;
    this.jump = false;
 
-   game.physics.p2.setPostBroadphaseCallback(this.hitboxCheckDroidBaton, this, );
+   game.physics.p2.setPostBroadphaseCallback(this.hitboxCheckDroidBaton, this);
+
 
    game.add.existing(this);
  }
@@ -335,11 +336,13 @@
      this.kill();
      this.destroy();
    }
+   console.log(droidNumber + " po");
  }
 
  this.droidFnc.prototype.hitboxCheckDroidBaton = function(body1, body2, ) {
 
-   // console.log(droidNumber + " L");
+   console.log(phaserFrame + " " + this.droidNumber + " L");
+   console.log(phaserFrame + " " + droidNumber + " J");
 
    if (((((body1.sprite.key === 'baton' && body2.sprite.key === 'playerHB') || (body2.sprite.key === 'baton' && body1.sprite.key === 'playerHB')) && droidAttack[droidNumber] == 3 && droidAttackTimer[droidNumber] < 30) || ((body1.sprite.key === 'droid' && body2.sprite.key === 'playerHB') || (body2.sprite.key === 'droid' && body1.sprite.key === 'playerHB'))) && playerInvincibility == 0) {
      playerHealth -= 1;
@@ -391,6 +394,7 @@
  var droidHealth = [];
  var droidX = [];
  var droidY = [];
+ var phaserFrame = 0;
 
 
  function preload() {
@@ -698,6 +702,10 @@
      wrench.body.velocity.y = 0;
 
    }
+   phaserFrame += 1;
+   if (activeLevel == 2) {
+     console.log("jj");
+   }
  }
 
  function allowStartFnc() {
@@ -860,7 +868,7 @@
    ventCover.smoothed = false;
 
 
-   new doorBlueFnc(game, wrench, 1010, 612, 950, 210);
+   new doorBlueFnc(game, wrench, 1010, 412, 950, 210);
 
    activeLevel = 1;
  }

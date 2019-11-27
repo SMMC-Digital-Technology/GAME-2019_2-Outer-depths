@@ -18,7 +18,9 @@
   ],
   "level2Droids": [
     { "image": "droid", "x": 1250, "y": 5800},
-    { "image": "droid", "x": 2300, "y": 5800}
+    { "image": "droid", "x": 2300, "y": 5800},
+    { "image": "droid", "x": 2700, "y": 5800}
+
 
   ]
 }
